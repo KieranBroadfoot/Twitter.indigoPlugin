@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<Actions>
+    <Action id="sendTwitterDirectMessage"> 
+        <Name>Send a Twitter Direct Message</Name>
+        <CallbackMethod>sendTwitterDirectMessage</CallbackMethod>
+		<ConfigUI>
+			<Field id="message" type="label">
+		        	<Label>The recipient field can contain: comma separated variable(s) or @users or a combination both. Variables can also contain a comma delimited list of twitter handles or variables</Label>
+		    	</Field>
+			<Field id="tweetRecipient" type="textfield" defaultValue="@kieranbroadfoot">
+				<Label>Recipient(s):</Label>
+			</Field>
+			<Field id="tweetText" type="textfield" defaultValue="This is a direct message">
+				<Label>Tweet:</Label>
+			</Field>
+		</ConfigUI>
+    </Action>
+    <Action id="sendTweet"> 
+        <Name>Send a Tweet</Name>
+        <CallbackMethod>sendTweet</CallbackMethod>
+		<ConfigUI>
+			<Field id="tweetText" type="textfield" defaultValue="This is a tweet">
+				<Label>Tweet:</Label>
+			</Field>
+		</ConfigUI>
+    </Action>
+</Actions>

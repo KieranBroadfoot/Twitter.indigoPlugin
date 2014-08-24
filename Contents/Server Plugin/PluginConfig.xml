@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<Field id="topLabel" type="label" fontSize="small" fontColor="darkgray">
+		<Label>If you wish to limit the twitter users who may DM this Indigo instance then add them below. Use a comma separated list of twitter handles or variables (where the variable contains a comma separated list of handles or variables). Don't forget to include the @ symbol if its a handle. Leave empty if you want to allow anyone with DM rights to talk to me.</Label>
+	</Field>
+	<Field id="twitterTrustedUsers" type="textfield" defaultValue="@kieranbroadfoot">
+		<Label>Trusted Users:</Label>
+	</Field>
+</PluginConfig>
