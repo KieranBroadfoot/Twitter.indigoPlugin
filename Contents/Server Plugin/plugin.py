@@ -75,14 +75,21 @@ class Plugin(indigo.PluginBase):
                             # find valid trigger and exec
                             triggerName = "twitter_" + re.sub('\s+', '_', unpack['text'].lower())
                             foundTrigger = False
+                            collectTriggers = []
                             for trigger in indigo.triggers:
+                                if trigger.name.startswith("twitter_"):
+                                    collectTriggers.append(trigger.name.replace("twitter_","").replace("_"," "))
                                 if trigger.name == triggerName:
                                     # exec trigger
                                     indigo.trigger.execute(trigger.id, ignoreConditions=False)
                                     foundTrigger = True
                         
                             if foundTrigger == False:
-                                self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
+                                # check if text is "help", if so generate a useful response
+                                if unpack['text'].lower() == "help":
+                                    self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectTriggers),"dm")
+                                else:
+                                    self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
                         else:
                             indigo.server.log("Tweet from untrusted user: "+"@"+unpack['handle'])
                     else: 
@@ -120,13 +127,13 @@ class Plugin(indigo.PluginBase):
     def sendMessageToTWSender(self, handle, text, type):
         # before sending, split into 140 char segments
         segments = [text[i:i+139] for i in range(0, len(text), 139)]
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         host = "127.0.0.1"
         port = 13940
-        s.connect((host,port))
         for segment in segments:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host,port))
             s.send(json.dumps({'handle': handle, 'text': segment, 'type': type}).encode()) 
-        s.close()
+            s.close()
         
     def generateResponse(self, text):
         # a very simple templating engine to extract IOM expressions
