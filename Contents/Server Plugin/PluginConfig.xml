@@ -6,4 +6,12 @@
 	<Field id="twitterTrustedUsers" type="textfield" defaultValue="@kieranbroadfoot">
 		<Label>Trusted Users:</Label>
 	</Field>
+	<Field id="separator" type="separator"/>
+	<Field type="checkbox" id="supportChatbot" defaultValue="false">
+		<Label>Support Chatbot:</Label>
+		<Description>Enable if you want to link Twitter and Chatbot Plugins</Description>
+	</Field>
+	<Field id="chatbotID" type="textfield" defaultValue="12345678">
+		<Label>Chatbot Device ID::</Label>
+	</Field>
 </PluginConfig>

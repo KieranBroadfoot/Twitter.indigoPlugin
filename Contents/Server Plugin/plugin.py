@@ -25,6 +25,9 @@ class Plugin(indigo.PluginBase):
         self.stopThread = False
         self.socket = False
         self.currentHandle = False
+        self.chatbotEnabled = False
+        self.chatbotID = ''
+        self.chatbot = ''
 
     def __del__(self):
         indigo.PluginBase.__del__(self)
@@ -34,6 +37,18 @@ class Plugin(indigo.PluginBase):
         for trigger in indigo.triggers:
             if trigger.name.startswith("twitter_"):
                 indigo.server.log("trigger ("+trigger.name+") no longer supported, use an action group instead")
+        if self.pluginPrefs.get("supportChatbot", "false") == True:
+            dev = False
+            try:
+                dev = indigo.devices[int(self.pluginPrefs.get("chatbotID","12345678"))]
+            except Exception, e:
+                indigo.server.log("invalid chatbot device id.", isError=True)
+            if dev:
+                chatbotId = "me.gazally.indigoplugin.chatbot"
+                self.chatbot = indigo.server.getPlugin(chatbotId)
+                self.chatbotEnabled = True
+                self.chatbotID = int(self.pluginPrefs.get("chatbotID","12345678"))
+                indigo.server.log("chatbot enabled")
         process = subprocess.Popen(["./twrecv.py"], shell=True)
         process = subprocess.Popen(["./twsend.py"], shell=True)
 
@@ -104,7 +119,11 @@ class Plugin(indigo.PluginBase):
                                     if unpack['text'].lower() == "help":
                                         self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectActionGroups),"dm")
                                     else:
-                                        self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
+                                        if self.chatbotEnabled == True and self.chatbot.isEnabled():
+                                            props = {"message": unpack['text'], "name": unpack['handle']}
+                                            self.chatbot.executeAction("getChatbotResponse", deviceId=self.chatbotID, props=props)
+                                        else:
+                                            self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
                             else:
                                 indigo.server.log("Tweet containing ID which we've seen before: "+str(unpack['id']))
                         else:
