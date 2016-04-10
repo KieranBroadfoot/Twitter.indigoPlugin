@@ -31,6 +31,9 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         indigo.server.log("starting twitter plugin")
+        for trigger in indigo.triggers:
+            if trigger.name.startswith("twitter_"):
+                indigo.server.log("trigger ("+trigger.name+") no longer supported, use an action group instead")
         process = subprocess.Popen(["./twrecv.py"], shell=True)
         process = subprocess.Popen(["./twsend.py"], shell=True)
 
@@ -57,7 +60,6 @@ class Plugin(indigo.PluginBase):
                     data = conn.recv(1024)
                     if data:
                         unpack = json.loads(data)
-                        
                         # check if incoming message is from a trusted user
                         trustedUsers = self.generateListOfHandles(self.pluginPrefs.get("twitterTrustedUsers", ""))
                         trusted = False;
@@ -68,11 +70,8 @@ class Plugin(indigo.PluginBase):
                         if trusted:
                             # first: check we havent seen this item before
                             validTweetID = False
-                            indigo.server.log(data)
                             try:
                                 self.lastSeenID = indigo.variables["_twLastSeenID"]
-                                indigo.server.log("last: "+str(self.lastSeenID.value))
-                                indigo.server.log(" new: "+str(unpack['id']))
                                 if (unpack['id'] > long(self.lastSeenID.value)):
                                     validTweetID = True
                                     indigo.variable.updateValue(self.lastSeenID, str(unpack['id']))
@@ -81,29 +80,29 @@ class Plugin(indigo.PluginBase):
                                 validTweetID = True
                                 self.currentHandle = indigo.variable.create("_twLastSeenID", unpack['id'])
                             
-                            if validTweetID:
+                            if validTweetID: 
                                 # create a currentTWHandle variable so we can reply.  We presume this plugin is single threaded
                                 try:
                                     self.currentHandle = indigo.variables["currentTWHandle"]
                                     indigo.variable.updateValue(self.currentHandle, "@"+unpack['handle'])
                                 except KeyError:
                                     self.currentHandle = indigo.variable.create("currentTWHandle", "@"+unpack['handle'])
-                                # find valid trigger and exec
-                                triggerName = "twitter_" + re.sub('\s+', '_', unpack['text'].lower())
+                                # find valid actionGroup and exec
+                                actionGroupName = "twitter_" + re.sub('\s+', '_', unpack['text'].lower())
                                 foundTrigger = False
-                                collectTriggers = []
-                                for trigger in indigo.triggers:
-                                    if trigger.name.startswith("twitter_"):
-                                        collectTriggers.append(trigger.name.replace("twitter_","").replace("_"," "))
-                                    if trigger.name == triggerName:
-                                        # exec trigger
-                                        indigo.trigger.execute(trigger.id, ignoreConditions=False)
+                                collectActionGroups = []
+                                for actionGroup in indigo.actionGroups:
+                                    if actionGroup.name.startswith("twitter_"):
+                                        collectActionGroups.append(actionGroup.name.replace("twitter_","").replace("_"," "))
+                                    if actionGroup.name == actionGroupName:
+                                        # exec actionGroup
+                                        indigo.actionGroup.execute(actionGroup.id)
                                         foundTrigger = True
                         
                                 if foundTrigger == False:
                                     # check if text is "help", if so generate a useful response
                                     if unpack['text'].lower() == "help":
-                                        self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectTriggers),"dm")
+                                        self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectActionGroups),"dm")
                                     else:
                                         self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
                             else:
@@ -120,11 +119,9 @@ class Plugin(indigo.PluginBase):
             
     def sendTwitterDirectMessage(self, action, dev):
         for h in self.generateListOfHandles(action.props.get("tweetRecipient","")):
-            indigo.server.log(u"sending direct message to \"%s\": \"%s\"" % (h, action.props.get("tweetText","")))
             self.sendMessageToTWSender(h, self.generateResponse(action.props.get("tweetText")), "dm")
         
     def sendTweet(self, action, dev):
-        indigo.server.log(u"sending tweet \"%s\"" % (action.props.get("tweetText","")))
         self.sendMessageToTWSender("", self.generateResponse(action.props.get("tweetText")), "tweet")
         
     def generateListOfHandles(self, handleString):
@@ -143,8 +140,14 @@ class Plugin(indigo.PluginBase):
         return handles
         
     def sendMessageToTWSender(self, handle, text, type):
-        # before sending, split into 140 char segments
-        segments = [text[i:i+139] for i in range(0, len(text), 139)]
+        segments = []
+        if type == "dm":
+            indigo.server.log(u"sending direct message to \"%s\": \"%s\"" % (handle, text))
+            segments.append(text)
+        else:
+            # before sending, split into 140 char segments
+            indigo.server.log(u"sending tweet \"%s\"" % text)
+            segments = [text[i:i+139] for i in range(0, len(text), 139)]
         host = "127.0.0.1"
         port = 13940
         for segment in segments:
