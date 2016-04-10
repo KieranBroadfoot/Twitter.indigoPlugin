@@ -33,5 +33,6 @@ for msg in twitter_userstream.user():
             s.connect((host,port))
             s.send(json.dumps({'handle': msg['direct_message']['sender_screen_name'], 
                 'text': msg['direct_message']['text'], 
+                'id': msg['direct_message']['id'],
                 'type': 'dm'}).encode()) 
             s.close ()

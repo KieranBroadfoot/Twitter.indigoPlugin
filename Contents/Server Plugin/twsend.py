@@ -39,7 +39,10 @@ try:
                 if unpack['type'] == "tweet":
                     twitter.statuses.update(status=unpack['text'])
                 else:
-                    twitter.direct_messages.new(user=unpack['handle'],text=unpack['text'])
+                    try:
+                        twitter.direct_messages.new(user=unpack['handle'],text=unpack['text'])
+                    except Exception,e:
+                        print str(e)
             else:
                 break
         conn.close()

@@ -66,30 +66,48 @@ class Plugin(indigo.PluginBase):
                         elif len(trustedUsers) and "@"+unpack['handle'] in trustedUsers:
                                 trusted = True
                         if trusted:
-                            # first create a currentTWHandle variable
+                            # first: check we havent seen this item before
+                            validTweetID = False
+                            indigo.server.log(data)
                             try:
-                                self.currentHandle = indigo.variables["currentTWHandle"]
-                                indigo.variable.updateValue(self.currentHandle, "@"+unpack['handle'])
+                                self.lastSeenID = indigo.variables["_twLastSeenID"]
+                                indigo.server.log("last: "+str(self.lastSeenID.value))
+                                indigo.server.log(" new: "+str(unpack['id']))
+                                if (unpack['id'] > long(self.lastSeenID.value)):
+                                    validTweetID = True
+                                    indigo.variable.updateValue(self.lastSeenID, str(unpack['id']))
                             except KeyError:
-                                self.currentHandle = indigo.variable.create("currentTWHandle", "@"+unpack['handle'])
-                            # find valid trigger and exec
-                            triggerName = "twitter_" + re.sub('\s+', '_', unpack['text'].lower())
-                            foundTrigger = False
-                            collectTriggers = []
-                            for trigger in indigo.triggers:
-                                if trigger.name.startswith("twitter_"):
-                                    collectTriggers.append(trigger.name.replace("twitter_","").replace("_"," "))
-                                if trigger.name == triggerName:
-                                    # exec trigger
-                                    indigo.trigger.execute(trigger.id, ignoreConditions=False)
-                                    foundTrigger = True
+                                # havent seen an ID before.. therefore this is a valid ID.
+                                validTweetID = True
+                                self.currentHandle = indigo.variable.create("_twLastSeenID", unpack['id'])
+                            
+                            if validTweetID:
+                                # create a currentTWHandle variable so we can reply.  We presume this plugin is single threaded
+                                try:
+                                    self.currentHandle = indigo.variables["currentTWHandle"]
+                                    indigo.variable.updateValue(self.currentHandle, "@"+unpack['handle'])
+                                except KeyError:
+                                    self.currentHandle = indigo.variable.create("currentTWHandle", "@"+unpack['handle'])
+                                # find valid trigger and exec
+                                triggerName = "twitter_" + re.sub('\s+', '_', unpack['text'].lower())
+                                foundTrigger = False
+                                collectTriggers = []
+                                for trigger in indigo.triggers:
+                                    if trigger.name.startswith("twitter_"):
+                                        collectTriggers.append(trigger.name.replace("twitter_","").replace("_"," "))
+                                    if trigger.name == triggerName:
+                                        # exec trigger
+                                        indigo.trigger.execute(trigger.id, ignoreConditions=False)
+                                        foundTrigger = True
                         
-                            if foundTrigger == False:
-                                # check if text is "help", if so generate a useful response
-                                if unpack['text'].lower() == "help":
-                                    self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectTriggers),"dm")
-                                else:
-                                    self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
+                                if foundTrigger == False:
+                                    # check if text is "help", if so generate a useful response
+                                    if unpack['text'].lower() == "help":
+                                        self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectTriggers),"dm")
+                                    else:
+                                        self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")
+                            else:
+                                indigo.server.log("Tweet containing ID which we've seen before: "+str(unpack['id']))
                         else:
                             indigo.server.log("Tweet from untrusted user: "+"@"+unpack['handle'])
                     else: 
