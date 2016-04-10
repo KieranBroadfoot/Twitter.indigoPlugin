@@ -26,7 +26,7 @@ The plugin provides you with actions to tweet and direct message specific users.
 Responding to Tweets
 --------------------
 
-If a (trusted) users direct messages to the indigo twitter account you can configure your indigo instance to respond. Simply create a trigger which responds to the text of the user.  So if the incoming request is "alarm status" then create a trigger named "twitter\_alarm\_status".  When creating the trigger do not set any trigger or conditional states (the plugin will find and execute the trigger).  Set your actions as you see fit.  If you want to DM back to the user with a response then add a DM action but set the twitter handle to the variable named "currentTWHandle".  This will ensure you respond back to the right user.
+If a (trusted) users direct messages to the indigo twitter account you can configure your indigo instance to respond. Simply create an action group which responds to the text of the user.  So if the incoming request is "alarm status" then create an action group named "twitter\_alarm\_status" and set your actions as you see fit.  If you want to DM back to the user with a response then add a DM action but set the twitter handle to the variable named "currentTWHandle".  This will ensure you respond back to the right user.
 
 Templating
 ----------
