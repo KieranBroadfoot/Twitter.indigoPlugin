@@ -34,10 +34,16 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         indigo.server.log("starting twitter plugin")
+        indigo.devices.subscribeToChanges()
         for trigger in indigo.triggers:
             if trigger.name.startswith("twitter_"):
                 indigo.server.log("trigger ("+trigger.name+") no longer supported, use an action group instead")
-        if self.pluginPrefs.get("supportChatbot", "false") == True:
+        self.addChatbotConfiguration(self.pluginPrefs.get("supportChatbot", "false"))
+        process = subprocess.Popen(["./twrecv.py"], shell=True)
+        process = subprocess.Popen(["./twsend.py"], shell=True)
+
+    def addChatbotConfiguration(self, state):
+        if state == True:
             dev = False
             try:
                 dev = indigo.devices[int(self.pluginPrefs.get("chatbotID","12345678"))]
@@ -49,8 +55,24 @@ class Plugin(indigo.PluginBase):
                 self.chatbotEnabled = True
                 self.chatbotID = int(self.pluginPrefs.get("chatbotID","12345678"))
                 indigo.server.log("chatbot enabled")
-        process = subprocess.Popen(["./twrecv.py"], shell=True)
-        process = subprocess.Popen(["./twsend.py"], shell=True)
+        else:
+            indigo.server.log("chatbot disabled")
+            self.chatbotEnabled = False
+
+    def checkboxChanged(self, valuesDict, typeId, devId):
+        self.addChatbotConfiguration(valuesDict["supportChatbot"])
+        return valuesDict
+
+    def deviceUpdated(self, old, new):
+        if self.chatbotEnabled == True and new.id == self.chatbotID and new.states["status"] == "Ready":
+            # the chatbot has reached a ready state.  that means we need to send a response back
+            device = indigo.devices[self.chatbotID]
+            reply = device.states["response"]
+            typeOfMessage = device.states["info1"]
+            handle = device.states["name"]
+            self.chatbot.executeAction("clearResponse", deviceId=self.chatbotID, props={})
+            if handle != "" and reply != "":
+                self.sendMessageToTWSender(handle,reply,typeOfMessage)
 
     def stopConcurrentThread(self):
         indigo.server.log("stopping twitter concurrent thread")
@@ -93,7 +115,7 @@ class Plugin(indigo.PluginBase):
                             except KeyError:
                                 # havent seen an ID before.. therefore this is a valid ID.
                                 validTweetID = True
-                                self.currentHandle = indigo.variable.create("_twLastSeenID", unpack['id'])
+                                self.currentHandle = indigo.variable.create("_twLastSeenID", str(unpack['id']))
                             
                             if validTweetID: 
                                 # create a currentTWHandle variable so we can reply.  We presume this plugin is single threaded
@@ -120,7 +142,7 @@ class Plugin(indigo.PluginBase):
                                         self.sendMessageToTWSender(unpack['handle'],"help: "+', '.join(collectActionGroups),"dm")
                                     else:
                                         if self.chatbotEnabled == True and self.chatbot.isEnabled():
-                                            props = {"message": unpack['text'], "name": unpack['handle']}
+                                            props = {"message": unpack['text'], "name": unpack['handle'], "info1": "dm"}
                                             self.chatbot.executeAction("getChatbotResponse", deviceId=self.chatbotID, props=props)
                                         else:
                                             self.sendMessageToTWSender(unpack['handle'],"Sorry Dave, I can't do that","dm")

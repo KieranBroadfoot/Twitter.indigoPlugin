@@ -10,8 +10,10 @@
 	<Field type="checkbox" id="supportChatbot" defaultValue="false">
 		<Label>Support Chatbot:</Label>
 		<Description>Enable if you want to link Twitter and Chatbot Plugins</Description>
+		<CallbackMethod>checkboxChanged</CallbackMethod>
 	</Field>
-	<Field id="chatbotID" type="textfield" defaultValue="12345678">
-		<Label>Chatbot Device ID::</Label>
+	<Field id="chatbotID" type="menu">
+		<Label>Chatbot:</Label>
+		<List class="indigo.devices" filter="me.gazally.indigoplugin.chatbot.chatbotResponderDevice"/>
 	</Field>
 </PluginConfig>
