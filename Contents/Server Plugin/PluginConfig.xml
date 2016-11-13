@@ -1,12 +1,52 @@
 <?xml version="1.0"?>
 <PluginConfig>
 	<Field id="topLabel" type="label" fontSize="small" fontColor="darkgray">
-		<Label>If you wish to limit the twitter users who may DM this Indigo instance then add them below. Use a comma separated list of twitter handles or variables (where the variable contains a comma separated list of handles or variables). Don't forget to include the @ symbol if its a handle. Leave empty if you want to allow anyone with DM rights to talk to me.</Label>
+		<Label>If you wish to limit the twitter users who may DM this Indigo instance then add them below. Use a comma separated list of twitter handles or variables (where the variable contains a comma separated list of handles or variables). Don't forget to include the @ symbol if its a handle. Leave empty if you want to allow anyone with DM rights to talk to you.</Label>
 	</Field>
 	<Field id="twitterTrustedUsers" type="textfield" defaultValue="@kieranbroadfoot">
 		<Label>Trusted Users:</Label>
 	</Field>
-	<Field id="separator" type="separator"/>
+	<Field id="separator1" type="separator"/>
+	<Field id="middleLabel" type="label" fontSize="small" fontColor="darkgray">
+		<Label>Follow the instructions at https://github.com/KieranBroadfoot/Twitter.indigoPlugin to complete this section. This will enable the plugin to interact with Twitter.</Label>
+	</Field>
+	<Field id="stage1CheckBox" type="checkbox" defaultValue="false" hidden="true">
+		<Label>Stage 1:</Label>
+		<Description></Description>
+	</Field>
+	<Field id="stage2CheckBox" type="checkbox" defaultValue="false" hidden="true">
+		<Label>Stage 2:</Label>
+		<Description></Description>
+	</Field>
+	<Field id="oauthAppName" type="textfield" defaultValue="">
+		<Label>Twitter App Name:</Label>
+	</Field>
+	<Field id="consumerKey" type="textfield" defaultValue="">
+		<Label>Consumer Key:</Label>
+	</Field>
+	<Field id="consumerSecret" type="textfield" defaultValue="">
+		<Label>Consumer Secret:</Label>
+	</Field>
+	<Field id="oauthPin" type="textfield" defaultValue="Enter pin and click 'Get Tokens'" visibleBindingId="stage2CheckBox" visibleBindingValue="true">
+		<Label>OAuth Pin:</Label>
+	</Field>
+	<Field id="oauthToken" type="textfield" defaultValue="" readonly="true" visibleBindingId="stage2CheckBox" visibleBindingValue="true">
+		<Label>OAuth Token:</Label>
+	</Field>
+	<Field id="oauthSecret" type="textfield" defaultValue="" readonly="true" visibleBindingId="stage2CheckBox" visibleBindingValue="true">
+		<Label>OAuth Secret:</Label>
+	</Field>
+	<Field id="oauthStage1Button" type="button" visibleBindingId="stage1CheckBox" visibleBindingValue="false">
+		<Label>Generate OAuth Pin:</Label>
+		<Title>Get Pin</Title>
+		<CallbackMethod>oauthStage1ButtonPressed</CallbackMethod>
+	</Field>
+	<Field id="oauthStage2Button" type="button" visibleBindingId="stage2CheckBox" visibleBindingValue="true">
+		<Label>Generate OAuth Tokens:</Label>
+		<Title>Get Tokens</Title>
+		<CallbackMethod>oauthStage2ButtonPressed</CallbackMethod>
+	</Field>
+	<Field id="separator2" type="separator"/>
 	<Field type="checkbox" id="supportChatbot" defaultValue="false">
 		<Label>Support Chatbot:</Label>
 		<Description>Enable if you want to link Twitter and Chatbot Plugins</Description>
@@ -15,5 +55,14 @@
 	<Field id="chatbotID" type="menu">
 		<Label>Chatbot:</Label>
 		<List class="indigo.devices" filter="me.gazally.indigoplugin.chatbot.chatbotResponderDevice"/>
+	</Field>
+	<Field id="separator3" type="separator"/>
+	<Field id="bottomLabel" type="label" fontSize="small" fontColor="red">
+		<Label>Use this button if you wish to reset your Twitter authentication credentials.</Label>
+	</Field>
+	<Field id="resetAuthentication" type="button">
+		<Label>Reset Authentication:</Label>
+		<Title>Reset!</Title>
+		<CallbackMethod>resetAuthentication</CallbackMethod>
 	</Field>
 </PluginConfig>

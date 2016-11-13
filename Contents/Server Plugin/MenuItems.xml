@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<MenuItems>
+    <MenuItem id="accessTwitter">
+        <Name>Visit dev.twitter.com</Name>
+        <CallbackMethod>accessDevTwitter</CallbackMethod>
+    </MenuItem>
+</MenuItems>
