@@ -24,7 +24,7 @@ class Plugin(indigo.PluginBase):
 		self.chatbotEnabled = False
 		self.chatbotID = ''
 		self.chatbot = ''
-		self.twitterAPI = ''
+		self.twitterAPI = None
 		self.stage1OauthToken = ''
 		self.stage1OauthSecret = ''
 		self.requestToStop = False
@@ -160,11 +160,16 @@ class Plugin(indigo.PluginBase):
 
 	def runConcurrentThread(self):
 		recvQueue = Queue.Queue(30)
-		creds = self.twitterAPI.VerifyCredentials()
-		ourUserName = creds.name
 		p = TimelineProducer(name='producer', queue=recvQueue, api=self.twitterAPI, logger=self.logger)
 		p.start()
+		ourUserName = None
 		while True:
+			while ourUserName == None:
+				if self.twitterAPI == None:
+					self.sleep(5)
+				else:
+					creds = self.twitterAPI.VerifyCredentials()
+					ourUserName = creds.name
 			if self.requestToStop != True:
 				if not recvQueue.empty():
 					msg = recvQueue.get()
