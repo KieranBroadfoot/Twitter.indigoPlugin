@@ -196,8 +196,8 @@ class Plugin(indigo.PluginBase):
 							if validTweetID:
 								# create a currentTWHandle variable so we can reply.  We presume this plugin is single threaded
 								try:
-									indigo.variables["currentTWHandle"]
-									indigo.variable.updateValue(self.currentHandle, "@"+msg['direct_message']['sender_screen_name'])
+									currentHandle = indigo.variables["currentTWHandle"]
+									indigo.variable.updateValue(currentHandle, "@"+msg['direct_message']['sender_screen_name'])
 								except KeyError:
 									indigo.variable.create("currentTWHandle", "@"+msg['direct_message']['sender_screen_name'])
 								# find valid actionGroup and exec
@@ -215,7 +215,7 @@ class Plugin(indigo.PluginBase):
 								if foundTrigger == False:
 									# check if text is "help", if so generate a useful response
 									if msg['direct_message']['text'].lower() == "help":
-										self.sendTwitterDirectMessage(msg['direct_message']['sender_screen_name'],"help: "+', '.join(collectActionGroups),"dm")
+										self.sendMessageToTWSender(msg['direct_message']['sender_screen_name'],"help: "+', '.join(collectActionGroups),"dm")
 									else:
 										if self.chatbotEnabled == True and self.chatbot.isEnabled():
 											props = {"message": msg['direct_message']['text'], "name": msg['direct_message']['sender_screen_name'], "info1": "dm"}
