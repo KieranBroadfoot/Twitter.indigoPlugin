@@ -226,6 +226,8 @@ class Plugin(indigo.PluginBase):
 								self.logger.info("tweet seen before: "+msg['direct_message']['id'])
 						else:
 							self.logger.info("tweet from untrusted user: "+"@"+msg['direct_message']['sender_screen_name'])
+				else:
+					self.sleep(1)
 			else:
 				p.terminate()
 				return
